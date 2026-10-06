@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cirebon Kuliner — Jelajahi Rasa Cirebon</title>
+  <meta name="description" content="Katalog kuliner Kota Cirebon lengkap dengan pencarian, filter area, rating, peta interaktif, detail hidangan, dan favorit.">
+  <meta name="theme-color" content="#13382C">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <!-- Main Custom CSS -->
+  <link rel="stylesheet" href="style.css?v=2026-10-01">
+</head>
+<body>
+  <div class="app">
+    <!-- TOP NAVIGATION BAR -->
+    <header class="topbar">
+      <div class="topbar-inner shell">
+        <a class="brand" href="#" onclick="showPage('home'); return false;">
+          <div class="brand-logo">
+            <span>C</span>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">Cirebon Kuliner</span>
+            <span class="brand-subtitle">JELAJAHI RASA CIREBON</span>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="desktop-nav" aria-label="Main Navigation">
+          <button data-page="home" class="nav-btn active">Beranda</button>
+          <button data-page="explore" class="nav-btn">Jelajahi</button>
+          <button data-page="category" class="nav-btn">Kategori</button>
+          <button data-page="popular" class="nav-btn">Populer</button>
+          <button data-page="favorites" class="nav-btn">Favorit <span id="favCount" class="nav-count">0</span></button>
+          <button data-page="about" class="nav-btn">Tentang</button>
+        </nav>
+
+        <div class="header-actions">
+          <button class="search-trigger-btn" onclick="scrollToSearch()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span>Cari</span>
+          </button>
+
+          <!-- Mobile Hamburger Toggle Button -->
+          <button class="mobile-toggle" id="mobileToggle" onclick="toggleMobileNav()" aria-label="Buka Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Navigation Drawer -->
+      <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-inner shell">
+          <button data-page="home" class="mobile-nav-link active" onclick="navigateMobile('home')">🏠 Beranda</button>
+          <button data-page="explore" class="mobile-nav-link" onclick="navigateMobile('explore')">📍 Jelajahi Kuliner & Peta</button>
+          <button data-page="category" class="mobile-nav-link" onclick="navigateMobile('category')">🍽️ semua Kategori</button>
+          <button data-page="popular" class="mobile-nav-link" onclick="navigateMobile('popular')">🔥 Kuliner Populer</button>
+          <button data-page="favorites" class="mobile-nav-link" onclick="navigateMobile('favorites')">❤️ Kuliner Favorit <span id="mobileFavCount" class="badge">0</span></button>
+          <button data-page="about" class="mobile-nav-link" onclick="navigateMobile('about')">ℹ️ Tentang Kami</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT PAGES -->
+    <main id="mainContent">
+
+      <!-- ================= 1. BERANDA (HOME) ================= -->
+      <section id="home" class="page active">
+        <!-- Hero Section -->
+        <div class="hero-section shell">
+          <div class="hero-copy">
+            <span class="eyebrow-chip">● PUAS KULINER KOTA CIREBON</span>
+            <h1>Temukan Kuliner<br><span class="highlight-serif">Favoritmu di Cirebon</span></h1>
+            <p class="hero-desc">Jelajahi berbagai makanan khas dan tempat kuliner menarik di Kota Cirebon, dari warung legendaris hingga hidangan terpopuler.</p>
+
+            <div class="hero-search-box" id="searchBox">
+              <div class="search-input-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#748078" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input id="homeSearch" type="text" placeholder="Cari makanan, tempat, atau kategori..." onkeydown="if(event.key==='Enter') doSearch()">
+              </div>
+              <button class="btn-primary" onclick="doSearch()">Cari</button>
+            </div>
+
+            <div class="quick-search-tags">
+              <span class="tag-label">Populer:</span>
+              <button class="tag-pill" onclick="quickSearch('Empal Gentong')">Empal Gentong</button>
+              <button class="tag-pill" onclick="quickSearch('Nasi Jamblang')">Nasi Jamblang</button>
+              <button class="tag-pill" onclick="quickSearch('Tahu Gejrot')">Tahu Gejrot</button>
+            </div>
+          </div>
+
+          <!-- Hero Showcase Card -->
+          <div class="hero-showcase">
+            <div class="featured-dish-card" onclick="showDetail(1)">
+              <div class="dish-img-wrapper">
+                <img src="https://img-global.cpcdn.com/recipes/0e170480b8720d90/680x482cq70/empal-gentong-khas-cirebon-foto-resep-utama.jpg" alt="Empal Gentong H. Apud" loading="eager">
+                <div class="rating-badge-floating">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#E6A13B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  <span>4.8</span>
+                </div>
+              </div>
+              <div class="dish-showcase-overlay">
+                <span class="eyebrow-mini">PILIHAN HARI INI</span>
+                <h3>Empal Gentong H. Apud</h3>
+                <p>Kedawung · Rp25.000–45.000</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="shell category-strip" aria-label="Kategori Kuliner">
+          <button type="button" class="category-pill active" data-category="all" onclick="selectCategoryFilter('all', this)">Semua Kategori</button>
+          <button type="button" class="category-pill" data-category="Makanan Berat" onclick="selectCategoryFilter('Makanan Berat', this)">Makanan Berat</button>
+          <button type="button" class="category-pill" data-category="Jajanan" onclick="selectCategoryFilter('Jajanan', this)">Jajanan</button>
+          <button type="button" class="category-pill" data-category="Minuman" onclick="selectCategoryFilter('Minuman', this)">Minuman</button>
+          <button type="button" class="category-pill" data-category="Seafood" onclick="selectCategoryFilter('Seafood', this)">Seafood</button>
+        </div>
+
+        <!-- Category Grid Section -->
+        <section class="section shell">
+          <div class="section-head">
+            <div>
+              <span class="section-eyebrow">PILIHAN SUASANA</span>
+              <h2>Mau makan apa hari ini?</h2>
+              <p class="section-desc">Jelajahi berbagai hidangan hingga tempat santai yang penuh cerita.</p>
+            </div>
+            <button class="btn-link" onclick="showPage('category')">Lihat semua kategori →</button>
+          </div>
+          <div class="category-grid-home" id="homeCategories"></div>
+        </section>
+
+        <!-- Popular Dishes Section -->
+        <section class="section shell">
+          <div class="section-head">
+            <div>
+              <span class="section-eyebrow">PALING DICARI</span>
+              <h2>Kuliner populer di Cirebon</h2>
+              <p class="section-desc">Daftar tempat favorit pengunjung berdasarkan ulasan dan rekomendasi terbaik.</p>
+            </div>
+            <button class="btn-link" onclick="showPage('popular')">Jelajahi ruang populer →</button>
+          </div>
+          <div class="food-grid" id="popularGrid"></div>
+        </section>
+
+        <!-- Map & Area Section -->
+        <section class="section shell address-map-section">
+          <div class="area-map-card">
+            <div class="area-map-info">
+              <span class="section-eyebrow">SUDUT KOTA CIREBON</span>
+              <h2>Jelajahi rasa di setiap sudut Cirebon</h2>
+              <p>Temukan tempat makan di Kesambi, Kejaksan, Kanoman, Harjamukti, dan Sunyaragi.</p>
+              
+              <div class="area-stats-list">
+                <div class="area-stat-item" onclick="filterByArea('Kesambi')">
+                  <span>Kesambi</span>
+                  <span class="count">2 pilihan →</span>
+                </div>
+                <div class="area-stat-item" onclick="filterByArea('Kejaksan')">
+                  <span>Kejaksan</span>
+                  <span class="count">3 pilihan →</span>
+                </div>
+                <div class="area-stat-item" onclick="filterByArea('Kanoman')">
+                  <span>Kanoman</span>
+                  <span class="count">2 pilihan →</span>
+                </div>
+              </div>
+
+              <button class="btn-primary flex-btn" onclick="showPage('explore')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>Buka Peta Kuliner</span>
+              </button>
+            </div>
+
+            <div class="area-map-preview">
+              <div id="homeMapPreview"></div>
+              <div class="map-badge-overlay">
+                <span>📍 10 tempat ditemukan di Cirebon</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recommendation Banner -->
+        <section class="section shell">
+          <div class="recommend-callout-card">
+            <div class="callout-content">
+              <span class="callout-eyebrow">BAGIKAN REKOMENDASIMU</span>
+              <h2>Punya tempat kuliner favorit di Cirebon?</h2>
+              <p>Bantu pecinta kuliner lain menemukan tempat makan terbaik dan tersembunyi di kota Cirebon.</p>
+            </div>
+            <button class="btn-secondary" onclick="openRecommendationModal()">Kirim rekomendasi →</button>
+          </div>
+        </section>
+      </section>
+
+      <!-- ================= 2. HALAMAN JELAJAHI (EXPLORE & MAP) ================= -->
+      <section id="explore" class="page">
+        <div class="shell page-heading">
+          <span class="section-eyebrow">📍 JELAJAHI CIREBON</span>
+          <h1>Jelajahi Kuliner Cirebon</h1>
+          <p>Temukan berbagai pilihan makanan, minuman, jajanan, dan kawasan kuliner terbaik di Kota Cirebon.</p>
+        </div>
+
+        <div class="shell explore-search-bar">
+          <div class="hero-search-box inline-search">
+            <div class="search-input-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#748078" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="exploreSearch" type="text" placeholder="Cari makanan, tempat, atau kategori..." oninput="renderExplore()">
+            </div>
+            <button class="btn-primary" onclick="renderExplore()">Cari Kuliner</button>
+          </div>
+        </div>
+
+        <div class="shell explore-layout">
+          <!-- Left Filter & Results Panel -->
+          <aside class="filter-results-sidebar">
+            <div class="filter-box">
+              <div class="filter-group">
+                <label>Area / Lokasi:</label>
+                <div class="chip-group" id="areaChipGroup">
+                  <button class="chip active" onclick="setAreaFilter('', this)">Semua</button>
+                  <button class="chip" onclick="setAreaFilter('Kesambi', this)">Kesambi</button>
+                  <button class="chip" onclick="setAreaFilter('Kedawung', this)">Kedawung</button>
+                  <button class="chip" onclick="setAreaFilter('Kejaksan', this)">Kejaksan</button>
+                  <button class="chip" onclick="setAreaFilter('Harjamukti', this)">Harjamukti</button>
+                  <button class="chip" onclick="setAreaFilter('Kanoman', this)">Kanoman</button>
+                  <button class="chip" onclick="setAreaFilter('Sunyaragi', this)">Sunyaragi</button>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <label>Kategori:</label>
+                <select id="catFilter" onchange="renderExplore()">
+                  <option value="">Semua Kategori</option>
+                  <option value="Makanan Berat">Makanan Berat</option>
+                  <option value="Jajanan">Jajanan</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Seafood">Seafood</option>
+                </select>
+              </div>
+
+              <div class="filter-actions-row">
+                <span class="results-counter"><b id="resultCount">0</b> kuliner ditemukan</span>
+                <button class="btn-text-reset" onclick="resetFilters()">Reset Filter</button>
+              </div>
+            </div>
+
+            <div class="explore-list-container" id="exploreList"></div>
+          </aside>
+
+          <!-- Right Interactive Map -->
+          <div class="map-view-container">
+            <div id="map"></div>
+            <div class="map-floating-tip">
+              <span>📍 Klik penanda di peta untuk melihat ringkasan detail</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. HASIL PENCARIAN ================= -->
+      <section id="search" class="page">
+        <div class="shell page-heading">
+          <span class="section-eyebrow">HASIL PENCARIAN</span>
+          <h1>Hasil Pencarian: “<span id="searchKeyword">Empal</span>”</h1>
+          <p id="searchSubtitle">Ditemukan kuliner yang sesuai dengan kata kunci pencarian.</p>
+        </div>
+
+        <div class="shell search-result-toolbar">
+          <div class="hero-search-box inline-search">
+            <div class="search-input-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#748078" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="resultSearchInput" type="text" placeholder="Cari kuliner lain..." onkeydown="if(event.key==='Enter') renderSearchPage()">
+            </div>
+            <button class="btn-primary" onclick="renderSearchPage()">Cari</button>
+          </div>
+        </div>
+
+        <div class="shell food-grid search-grid" id="searchGrid"></div>
+
+        <div class="shell search-footer-tip">
+          <div class="tip-card">
+            <div class="tip-icon">💡</div>
+            <div class="tip-text">
+              <h3>Ingin rekomendasi berdasarkan lokasi?</h3>
+              <p>Gunakan halaman Jelajahi untuk memfilter tempat makan berdasarkan area Kesambi, Kejaksan, Kanoman, dan peta interaktif.</p>
+            </div>
+            <button class="btn-primary" onclick="showPage('explore')">Buka Jelajahi →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. DETAIL KULINER ================= -->
+      <section id="detail" class="page">
+        <div class="shell detail-page-wrap">
+          <button class="btn-back" onclick="showPage('explore')">← Kembali ke Jelajah</button>
+          <div class="detail-content-box" id="detailContent">
+            <!-- Rendered dynamically by script.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 5. HALAMAN KATEGORI ================= -->
+      <section id="category" class="page">
+        <div class="shell category-hero-banner">
+          <span class="section-eyebrow">TENTANG KATEGORI KULINER</span>
+          <h1>Semua Kategori Kuliner</h1>
+          <p>Dari sarapan hingga kuliner malam, pilih kategori yang paling sesuai dengan suasana dan selera kamu.</p>
+          <div class="cat-stat-badge">
+            <span id="catTotalCount">20</span> Kategori Kuliner
+          </div>
+        </div>
+
+        <div class="shell category-filter-bar">
+          <button class="chip active" data-category="all" onclick="selectCategoryFilter('all', this)">Semua Kategori</button>
+          <button class="chip" data-category="Makanan Berat" onclick="selectCategoryFilter('Makanan Berat', this)">Makanan Berat</button>
+          <button class="chip" data-category="Jajanan" onclick="selectCategoryFilter('Jajanan', this)">Jajanan</button>
+          <button class="chip" data-category="Minuman" onclick="selectCategoryFilter('Minuman', this)">Minuman</button>
+          <button class="chip" data-category="Seafood" onclick="selectCategoryFilter('Seafood', this)">Seafood</button>
+        </div>
+
+        <div class="shell category-grid-full" id="categoryGrid"></div>
+
+        <div class="shell section">
+          <div class="category-cta-banner">
+            <div>
+              <span class="callout-eyebrow">REKOMENDASI KULINER</span>
+              <h2>Biarkan kami bantu menemukan rasa yang tepat.</h2>
+              <p>Pilih dari rekomendasi terpopuler atau hubungi kami untuk info kuliner terbaru.</p>
+            </div>
+            <button class="btn-secondary" onclick="showPage('popular')">Mulai jelajahi →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. HALAMAN FAVORIT ================= -->
+      <section id="favorites" class="page">
+        <div class="shell page-heading">
+          <span class="section-eyebrow">❤️ TERSIMPAN UNTUKMU</span>
+          <h1>Kuliner Favoritku <span class="badge-soft" id="favBadge">0 tersimpan</span></h1>
+          <p>Kumpulan makanan dan tempat kuliner pilihan yang telah kamu simpan.</p>
+        </div>
+
+        <div class="shell favorite-layout">
+          <div class="food-grid" id="favoriteGrid"></div>
+          
+          <div class="empty-state-box" id="emptyFav">
+            <div class="empty-icon">♡</div>
+            <h3>Favoritmu masih kosong</h3>
+            <p>Belum ada kuliner favorit yang disimpan. Klik tombol ♡ pada kartu makanan untuk menyimpannya di sini.</p>
+            <button class="btn-primary" onclick="showPage('explore')">Jelajahi Kuliner Sekarang</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 7. HALAMAN POPULER ================= -->
+      <section id="popular" class="page">
+        <div class="shell page-heading popular-head">
+          <div>
+            <span class="section-eyebrow">RATING DAN POPULER</span>
+            <h1>Kuliner Populer & Favorit</h1>
+            <p>Temukan hidangan paling sering dicari, diberi ulasan tinggi, dan disukai oleh komunitas kuliner Cirebon.</p>
+          </div>
+        </div>
+
+        <!-- Featured Top #1 Hero Card -->
+        <div class="shell top-featured-banner" id="topPopularFeatured"></div>
+
+        <div class="shell popular-section-title">
+          <div>
+            <span class="section-eyebrow">PALING BANYAK DICARI</span>
+            <h2>Daftar Kuliner Peringkat Teratas</h2>
+          </div>
+          <div class="popular-filter-chips">
+            <button class="chip active" onclick="filterPopular('all', this)">Semua</button>
+            <button class="chip" onclick="filterPopular('Makanan Berat', this)">Makanan Berat</button>
+            <button class="chip" onclick="filterPopular('Jajanan', this)">Jajanan</button>
+            <button class="chip" onclick="filterPopular('Minuman', this)">Minuman</button>
+            <button class="chip" onclick="filterPopular('Seafood', this)">Seafood</button>
+          </div>
+        </div>
+
+        <div class="shell popular-layout-grid">
+          <div class="food-grid popular-grid" id="popularPageGrid"></div>
+        </div>
+      </section>
+
+      <!-- ================= 8. HALAMAN TENTANG ================= -->
+      <section id="about" class="page">
+        <div class="shell page-heading">
+          <span class="section-eyebrow">● TENTANG KAMI</span>
+          <h1>Tentang Cirebon Kuliner</h1>
+          <p>Platform katalog dan peta interaktif digital untuk melestarikan dan mengenalkan kekayaan cita rasa kuliner Cirebon.</p>
+        </div>
+
+        <div class="shell about-hero-card">
+          <div class="about-text-col">
+            <span class="section-eyebrow">WARISAN GASTRONOMI</span>
+            <h2>Melestarikan Warisan Rasa Kota Cirebon</h2>
+            <p>Kota Cirebon dikenal sebagai salah satu pusat kekayaan kuliner di pesisir utara Jawa. Mulai dari rasa gurih Empal Gentong, kehangatan Nasi Jamblang bertutup daun jati, hingga kesegaran Tahu Gejrot.</p>
+            <p>Website ini dikembangkan untuk memudahkan wisatawan, mahasiswa, dan masyarakat lokal dalam menemukan tempat makan terbaik berdasarkan nama, kategori, area, rating, dan lokasi peta digital.</p>
+            
+            <div class="about-highlights-grid">
+              <div class="highlight-item">
+                <span class="icon">🍱</span>
+                <strong>10+ Kuliner khas</strong>
+                <small>Informasi akurat & gambar asli</small>
+              </div>
+              <div class="highlight-item">
+                <span class="icon">📍</span>
+                <strong>Peta Interaktif</strong>
+                <small>Navigasi berbasis Leaflet & OpenStreetMap</small>
+              </div>
+              <div class="highlight-item">
+                <span class="icon">❤️</span>
+                <strong>Fitur Favorit</strong>
+                <small>Penyimpanan otomatis via localStorage</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-stat-side">
+            <div class="stat-box">
+              <h3>4.8★</h3>
+              <p>Rating tertinggi kuliner pilihan</p>
+            </div>
+            <div class="stat-box">
+              <h3>5</h3>
+              <p>Kawasan area kuliner utama</p>
+            </div>
+            <div class="stat-box">
+              <h3>100%</h3>
+              <p>Responsif & ramah pengguna</p>
+            </div>
+            
+            <div class="about-project-credits">
+              <h4>Proyek Katalog Kuliner</h4>
+              <p>Dikembangkan sebagai proyek presentasi mahasiswa dengan fokus kejelasan visual, responsivitas, dan interaksi data.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner shell">
+        <div class="footer-col brand-col">
+          <a class="brand" href="#" onclick="showPage('home'); return false;">
+            <div class="brand-logo"><span>C</span></div>
+            <div class="brand-text">
+              <span class="brand-title">Cirebon Kuliner</span>
+              <span class="brand-subtitle">JELAJAHI RASA CIREBON</span>
+            </div>
+          </a>
+          <p>Temukan rasa, cerita, dan tempat makan terbaik di seluruh sudut Kota Cirebon.</p>
+          <div class="footer-socials">
+            <span class="social-icon">🌐</span>
+            <span class="social-icon">📸</span>
+            <span class="social-icon">✉️</span>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>EKSPLORASI</h4>
+          <ul>
+            <li><a onclick="showPage('explore')">Jelajahi Kuliner</a></li>
+            <li><a onclick="showPage('category')">Semua Kategori</a></li>
+            <li><a onclick="showPage('popular')">Paling Populer</a></li>
+            <li><a onclick="showPage('favorites')">Dengan Favorit</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>INFORMASI</h4>
+          <ul>
+            <li><a onclick="showPage('about')">Tentang Kami</a></li>
+            <li><a onclick="openRecommendationModal()">Kirim Rekomendasi</a></li>
+            <li><a onclick="showPage('explore')">Panduan Kuliner</a></li>
+            <li><a onclick="showPage('about')">Kontak</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col newsletter-col">
+          <h4>KABAR KULINER</h4>
+          <p>Rekomendasi pilihan harian langsung ke email kamu.</p>
+          <form class="newsletter-form" onsubmit="event.preventDefault(); showToast('Terima kasih telah mendaftar kabar kuliner!'); this.reset();">
+            <input type="email" placeholder="Email kamu..." required>
+            <button type="submit" aria-label="Kirim">➔</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="footer-bottom shell">
+        <p>© 2026 Cirebon Kuliner. Dibuat untuk proyek mahasiswa.</p>
+        <p>Kota Cirebon, Jawa Barat</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- RECOMMENDATION MODAL -->
+  <div class="modal-backdrop" id="recommendModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeRecommendationModal()">×</button>
+      <h3>Kirim Rekomendasi Kuliner</h3>
+      <p>Punya tempat makan favorit di Cirebon yang belum terdaftar? Beritahu kami!</p>
+      <form onsubmit="event.preventDefault(); submitRecommendation();">
+        <div class="form-group">
+          <label>Nama Tempat / Kuliner</label>
+          <input type="text" id="recName" placeholder="Contoh: Nasi Lengko H. Barno" required>
+        </div>
+        <div class="form-group">
+          <label>Area / Lokasi</label>
+          <select id="recArea" required>
+            <option value="Kesambi">Kesambi</option>
+            <option value="Kedawung">Kedawung</option>
+            <option value="Kejaksan">Kejaksan</option>
+            <option value="Kanoman">Kanoman</option>
+            <option value="Harjamukti">Harjamukti</option>
+            <option value="Sunyaragi">Sunyaragi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Catatan / Alasan Rekomendasi</label>
+          <textarea id="recNote" rows="3" placeholder="Rasanya enak, tempatnya bersih, dll..." required></textarea>
+        </div>
+        <button type="submit" class="btn-primary full-width">Kirim Rekomendasi</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Main Script -->
+  <script src="script.js?v=2026-10-01"></script>
+</body>
+</html>
